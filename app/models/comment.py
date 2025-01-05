@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from app.db.base import TimestampedBase
 
 class Comment(TimestampedBase):
@@ -8,14 +8,29 @@ class Comment(TimestampedBase):
 
     task_id = Column(UUID(as_uuid=True), ForeignKey("tasks.id"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    parent_id = Column(UUID(as_uuid=True), ForeignKey("comments.id"))  # For threaded comments
     content = Column(Text, nullable=False)
     attachments = Column(JSON)
 
     # Relationships
     task = relationship("Task", back_populates="comments")
     user = relationship("User", back_populates="comments")
-    parent = relationship("Comment", remote_side=[id], backref="replies")
+
+    parent_id = Column(UUID(as_uuid=True), ForeignKey("comments.id"))  # For threaded comments
+
+    parent = relationship(
+        "Comment",
+        back_populates="replies",
+        remote_side="[Comment.id]",
+        lazy="joined"
+    )
+    
+    replies = relationship(
+        "Comment",
+        back_populates="parent",
+        cascade="all, delete-orphan",
+        lazy="selectin"
+    )
+
 
     def __repr__(self):
         return f"<Comment {self.id} on {self.task_id}>"

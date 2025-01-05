@@ -5,6 +5,8 @@ from app.db.session import engine
 from app.db.base import Base
 
 
+from app.api.v1 import users_router
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Create database tables
@@ -28,3 +30,6 @@ async def root():
         # "version": settings.VERSION,
         "docs_url": "/docs"
     }
+
+
+app.include_router(users_router, prefix="/api/v1")
