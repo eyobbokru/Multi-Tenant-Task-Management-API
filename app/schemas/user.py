@@ -27,6 +27,7 @@ class UserUpdate(BaseSchema):
     preferences: Optional[Dict] = None
     two_factor_enabled: Optional[bool] = None
     password: Optional[str] = Field(None, min_length=8)
+    last_login_at: Optional[datetime] = None
 
 class UserInDB(UserBase, TimeStampedSchema, IDSchema):
     last_login_at: Optional[datetime] = None
@@ -46,3 +47,13 @@ class ChangePassword(BaseSchema):
     def validate_passwords_match(self):
         if self.new_password != self.confirm_password:
             raise ValueError("New passwords do not match")
+        
+
+class LoginResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

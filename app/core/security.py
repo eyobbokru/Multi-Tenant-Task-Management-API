@@ -25,7 +25,7 @@ def create_access_token(
     encoded_jwt = jwt.encode(
         to_encode,
         settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM
+        algorithm=settings.JWT_ALGORITHM
     )
     return encoded_jwt
 
@@ -42,7 +42,7 @@ def create_refresh_token(
     encoded_jwt = jwt.encode(
         to_encode,
         settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM
+        algorithm=settings.JWT_ALGORITHM
     )
     return encoded_jwt
 
@@ -54,7 +54,7 @@ def verify_token(token: str) -> dict:
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.JWT_ALGORITHM]
         )
         return payload
     except jwt.JWTError:
@@ -89,7 +89,7 @@ def is_token_expired(token: str) -> bool:
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.JWT_ALGORITHM]
         )
         expiration = datetime.fromtimestamp(payload["exp"])
         return datetime.utcnow() >= expiration

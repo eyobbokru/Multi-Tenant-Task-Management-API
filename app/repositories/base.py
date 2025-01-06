@@ -32,7 +32,6 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         query = select(self.model).where(getattr(self.model, attr) == value)
         result = await self.db.execute(query)
-        print("here***")
         return result.scalar_one_or_none()
 
     async def list(

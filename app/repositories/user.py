@@ -1,5 +1,5 @@
 #app/respositories/user.py
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +7,7 @@ from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 from app.core.security import get_password_hash
 from app.repositories.base import BaseRepository
+from sqlalchemy import update
 
 class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
     def __init__(self, db: AsyncSession):
@@ -28,12 +29,27 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
         return db_obj
 
     async def update(self, *, id: UUID, schema: UserUpdate, exclude_unset: bool = True) -> Optional[User]:
-        """Override update method to handle password hashing"""
+        """Override update method to handle password hashing and timestamps"""
         update_data = schema.model_dump(exclude_unset=exclude_unset)
+        print(update_data)
+        
         if "password" in update_data:
             update_data["password_hash"] = get_password_hash(update_data.pop("password"))
+        # Update the timestamp
+        update_data["updated_at"] = datetime.now()
         
-        return await super().update(id=id, schema=UserUpdate(**update_data), exclude_unset=exclude_unset)
+        stmt = (
+            update(User)
+            .where(User.id == id)
+            .values(**update_data)
+            .returning(User)
+        )
+        
+        result = await self.db.execute(stmt)
+        await self.db.commit()
+        
+        return result.scalar_one_or_none()
+
 
     async def get_by_email(self, email: str) -> Optional[User]:
         """Get user by email"""
@@ -41,10 +57,11 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
 
     async def update_last_login(self, user_id: UUID) -> None:
         """Update user's last login timestamp"""
+        print("Updating last login")
         await self.update(
             id=user_id,
-            schema=UserUpdate(last_login_at=datetime.utcnow()),
-            exclude_unset=False
+            schema=UserUpdate(last_login_at=datetime.now()),
+            # exclude_unset=False
         )
 
     async def soft_delete(self, user_id: UUID) -> bool:

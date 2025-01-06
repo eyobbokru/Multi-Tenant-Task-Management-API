@@ -1,9 +1,11 @@
 from typing import AsyncGenerator, Optional, List
+from app.db.redis import get_redis
 from fastapi import Depends, HTTPException, status, Security
 from fastapi.security import OAuth2PasswordBearer, SecurityScopes
 from jose import jwt, JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
+from redis import Redis
 
 from app.core.config import settings
 from app.core.security import verify_token
@@ -12,7 +14,7 @@ from app.services.user import UserService
 from app.models.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/auth/login",
+    tokenUrl=f"{settings.API_V1_STR}/users/login",
     scopes={
         "admin": "Full access to all resources",
         "user": "Regular user access",
@@ -27,6 +29,7 @@ oauth2_scheme = OAuth2PasswordBearer(
 async def get_current_user(
     security_scopes: SecurityScopes,
     db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
     token: str = Depends(oauth2_scheme)
 ) -> User:
     """Dependency for getting current authenticated user."""
@@ -57,7 +60,7 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user_service = UserService(db)
+    user_service = UserService(db,redis)
     user = await user_service.get_user(UUID(user_id))
     
     if user is None:

@@ -35,7 +35,7 @@ class TestSecurity:
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.JWT_ALGORITHM]
         )
         
         assert payload["sub"] == user_id
@@ -49,7 +49,7 @@ class TestSecurity:
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.JWT_ALGORITHM]
         )
         
         expiry = datetime.fromtimestamp(payload["exp"])
@@ -65,7 +65,7 @@ class TestSecurity:
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.JWT_ALGORITHM]
         )
         
         assert payload["sub"] == user_id

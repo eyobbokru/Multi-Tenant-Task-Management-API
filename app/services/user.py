@@ -227,3 +227,13 @@ class UserService:
         """Generate secure reset token."""
         import secrets
         return secrets.token_urlsafe(32)
+    
+    async def get_user(self, user_id: UUID) -> UserResponse:
+        """Retrieve user by ID."""
+        user = await self.repository.get_by_id(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        return UserResponse.model_validate(user)
