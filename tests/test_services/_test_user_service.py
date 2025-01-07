@@ -10,8 +10,8 @@ from app.core.security import get_password_hash, verify_password
 from fastapi import HTTPException
 
 @pytest.fixture
-def user_service(db, redis):
-    return UserService(db, redis)
+def user_service(db_session, redis):
+    return UserService(db_session, redis)
 
 @pytest.fixture
 def user_data():
@@ -24,6 +24,7 @@ def user_data():
         preferences={"theme": "dark"},
         two_factor_enabled=False
     )
+
 
 @pytest.mark.asyncio
 async def test_create_user_success(user_service, user_data):
