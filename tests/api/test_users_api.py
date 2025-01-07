@@ -6,8 +6,8 @@ from app.core.config import settings
 TEST_USER_DATA = {
     "email": "newuser@example.com",
     "name": "New User",
-    "password": "testpassword123",
-    "confirm_password": "testpassword123"
+    "password": "Testpassword#123",
+    "confirm_password": "Testpassword#123"
 }
 
 class TestUserAPI:
@@ -16,6 +16,7 @@ class TestUserAPI:
             f"{settings.API_V1_STR}/users",
             json=TEST_USER_DATA
         )
+        print(response.json())
         assert response.status_code == 201
         data = response.json()
         assert data["email"] == TEST_USER_DATA["email"]
@@ -160,3 +161,4 @@ class TestUserAPI:
         )
         assert response.status_code in [400, 422]
         assert expected_error in str(response.json())
+
